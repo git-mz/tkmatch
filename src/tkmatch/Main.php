@@ -1,7 +1,7 @@
 <?php
 /**
- * 文本词匹配类库
- * User: Mz
+ * 文本-关键词(标签)匹配类库
+ * User: git-mz
  * Date: 21/01/28
  */
 namespace tkmatch;
@@ -11,28 +11,28 @@ use tkmatch\util\HashMap;
 class Main
 {
     /**
-     * 待检测语句长度
+     * 待匹配文本总长度
      *
      * @var int
      */
     protected $contentLength = 0;
 
     /**
-     * 敏感词单例
+     * 标签单例
      *
      * @var object|null
      */
     private static $_instance = null;
 
     /**
-     * 铭感词库树
+     * 标签词库树
      *
      * @var HashMap|null
      */
     protected $wordTree = null;
 
     /**
-     * 存放待检测语句铭感词
+     * 存放已匹配的标签
      *
      * @var array|null
      */
@@ -52,7 +52,7 @@ class Main
     }
 
     /**
-     * 构建铭感词树【文件模式】
+     * 构建标签词树【文件模式】
      *
      * @param string $filepath
      *
@@ -75,7 +75,7 @@ class Main
     }
 
     /**
-     * 构建铭感词树【数组模式】
+     * 构建标签词树【数组模式】
      *
      * @param null $sensitiveWords
      *
@@ -90,20 +90,17 @@ class Main
 
         $this->wordTree = new HashMap();
         foreach ($sensitiveWords as $words) {
-            #var_dump($word);
             $this->buildWordToTree($words['word'], $words['url']);
-            #var_dump($url);
-            #exit;
         }
         return $this;
     }
 
     /**
-     * 检测文字中的敏感词
+     * 检测文本中的标签
      *
      * @param string   $content    待检测内容
      * @param int      $matchType  匹配类型 [默认为最小匹配规则]
-     * @param int      $wordNum    需要获取的敏感词数量 [默认获取全部]
+     * @param int      $wordNum    需要获取的标签数量 [默认获取全部]
      * @return array
      * @throws \DfaFilter\Exceptions\PdsSystemException
      */
@@ -177,11 +174,11 @@ class Main
     }
 
     /**
-     * 替换敏感字字符
+     * 替换标签字符
      *
      * @param        $content      文本内容
      * @param string $replaceChar  替换字符
-     * @param bool   $repeat       true=>重复替换为敏感词相同长度的字符
+     * @param bool   $repeat       true=>重复替换为标签相同长度的字符
      * @param int    $matchType
      *
      * @return mixed
@@ -195,7 +192,7 @@ class Main
         }
         $badWordList = self::$badWordList ? self::$badWordList : $this->getBadWord($content, $matchType);
 
-        // 未检测到敏感词，直接返回
+        // 未检测到标签，直接返回
         if (empty($badWordList)) {
             return $content;
         }
@@ -213,7 +210,7 @@ class Main
     }
 
     /**
-     * 标记敏感词
+     * 标记标签
      *
      * @param        $content    文本内容
      * @param string $sTag       标签开头，如<mark>
@@ -232,7 +229,7 @@ class Main
 
         $badWordList = self::$badWordList ? self::$badWordList : $this->getBadWord($content, $matchType);
 
-        // 未检测到敏感词，直接返回
+        // 未检测到标签，直接返回
         if (empty($badWordList)) {
             return $content;
         }
@@ -303,7 +300,7 @@ class Main
         fclose($fp);
     }
 
-    // 将单个敏感词构建成树结构
+    // 将单个标签构建成树结构
     protected function buildWordToTree($word = '', $url = '')
     {
         if ('' === $word) {
@@ -341,7 +338,7 @@ class Main
     }
 
     /**
-     * 敏感词替换为对应长度的字符
+     * 标签替换为对应长度的字符
      * @param $word
      * @param $char
      *
