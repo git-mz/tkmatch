@@ -6,11 +6,13 @@
             "email": "875678022@qq.com"
         }
     ],
-    "require": {},
+    "require": {
+        "git-mz/tkmatch": "dev-master"
+    },
     "autoload": {
         "psr-4": {
-            "tkmatch\\lib\\": "src/tkmatch/lib"
+            "tkmatch\\": "src/tkmatch",
+            "tkmatch\\util\\": "src/tkmatch/util"
         }
     }
 }
-
