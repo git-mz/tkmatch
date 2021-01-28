@@ -1,0 +1,16 @@
+{
+    "name": "mz/tkmatch",
+    "authors": [
+        {
+            "name": "mz",
+            "email": "875678022@qq.com"
+        }
+    ],
+    "require": {},
+    "autoload": {
+        "psr-4": {
+            "tkmatch\\lib\\": "src/tkmatch/lib"
+        }
+    }
+}
+
