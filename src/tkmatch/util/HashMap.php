@@ -1,7 +1,7 @@
 <?php
 /**
  * HashMap处理类
- * User: Mz
+ * User: 盟主 
  * Date: 21/01/28
  */
 namespace tkmatch\util;
@@ -9,38 +9,30 @@ namespace tkmatch\util;
 class HashMap
 {
     /**
-     * 哈希表变量
+     * 初始化hashTable
      *
-     * @var array|null
+     * @var array|[]
      */
     protected $hashTable = array();
-
-    public function __construct()
-    {}
 
     /**
      * 向HashMap中添加一个键值对
      *
      * @param $key
      * @param $value
-     * @return mixed|null
+     * @return true
      */
     public function put($key, $value)
     {
-        if (!array_key_exists($key, $this->hashTable)) {
-            $this->hashTable[$key] = $value;
-            return null;
-        }
-        $_temp                 = $this->hashTable[$key];
         $this->hashTable[$key] = $value;
-        return $_temp;
+        return true;
     }
 
     /**
      * 根据key获取对应的value
      *
      * @param $key
-     * @return mixed|null
+     * @return value|false
      */
     public function get($key)
     {
@@ -54,28 +46,19 @@ class HashMap
      * 删除指定key的键值对
      *
      * @param $key
-     * @return mixed|null
+     * @return true|false
      */
     public function remove($key)
     {
-        $temp_table = array();
         if (array_key_exists($key, $this->hashTable)) {
-            $tempValue = $this->hashTable[$key];
-            while ($curValue = current($this->hashTable)) {
-                if (!(key($this->hashTable) == $key)) {
-                    $temp_table[key($this->hashTable)] = $curValue;
-                }
-                next($this->hashTable);
-            }
-            $this->hashTable = null;
-            $this->hashTable = $temp_table;
-            return $tempValue;
+            unset($this->hashTable[$key]);
+            return true;
         }
-        return null;
+        return false;
     }
 
     /**
-     * 获取HashMap的所有键值
+     * 获取HashMap的所有key
      *
      * @return array
      */
@@ -85,7 +68,7 @@ class HashMap
     }
 
     /**
-     * 获取HashMap的所有value值
+     * 获取HashMap的所有value
      *
      * @return array
      */
@@ -107,7 +90,6 @@ class HashMap
                 $this->put($key, $map->get($key));
             }
         }
-
         return;
     }
 

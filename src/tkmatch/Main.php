@@ -1,7 +1,7 @@
 <?php
 /**
  * 文本-关键词(标签)匹配类库
- * User: git-mz
+ * User: 盟主
  * Date: 21/01/28
  */
 namespace tkmatch;
@@ -36,7 +36,7 @@ class Main
      *
      * @var array|null
      */
-    protected static $badWordList = null;
+    protected static $tagWordList = null;
 
     /**
      * 获取单例
@@ -61,10 +61,6 @@ class Main
      */
     public function setTreeByFile($filepath = '')
     {
-        if (!file_exists($filepath)) {
-            throw new PdsBusinessException('词库文件不存在', PdsBusinessException::CANNOT_FIND_FILE);
-        }
-
         // 词库树初始化
         $this->wordTree = $this->wordTree ?: new HashMap();
         foreach ($this->yieldToReadFile($filepath) as $word) {
@@ -84,10 +80,6 @@ class Main
      */
     public function setTree($sensitiveWords = null)
     {
-        if (empty($sensitiveWords)) {
-            throw new PdsBusinessException('词库不能为空', PdsBusinessException::EMPTY_WORD_POOL);
-        }
-
         $this->wordTree = new HashMap();
         foreach ($sensitiveWords as $words) {
             $this->buildWordToTree($words['word'], $words['url']);
@@ -104,10 +96,10 @@ class Main
      * @return array
      * @throws \DfaFilter\Exceptions\PdsSystemException
      */
-    public function getBadWord($content, $matchType = 1, $wordNum = 0)
+    public function getTagWord($content, $matchType = 1, $wordNum = 0)
     {
         $this->contentLength = mb_strlen($content, 'utf-8');
-        $badWordList         = array();
+        $tagWordList         = array();
         for ($length = 0; $length < $this->contentLength; $length++) {
             $matchFlag  = 0;
             $flag       = false;
@@ -116,61 +108,48 @@ class Main
             $iscontinue = 0;
             for ($i = $length; $i < $this->contentLength; $i++) {
                 $keyChar = mb_substr($content, $i, 1, 'utf-8');
-
                 // 获取指定节点树
                 $nowMap = $tempMap->get($keyChar);
-
                 // 不存在节点树，直接返回
                 if (empty($nowMap)) {
                     break;
                 }
-
                 // 存在，则判断是否为最后一个
                 $tempMap = $nowMap;
-
                 // 找到相应key，偏移量+1
                 $matchFlag++;
-                $url = $tempMap->get('url');
-
-                // 如果为最后一个匹配规则,结束循环，返回匹配标识数
-                if (false == $tempMap->get('ending') && $iscontinue == 0) {
+                if (false == $tempMap->get('ending')) {
                     continue;
-                } else if (true === $tempMap->get('ending') && $iscontinue >= 0) {
+                }
+                if (true === $tempMap->get('ending')) {
                     $iscontinue++;
                     $flag = true;
                     $url  = $tempMap->get('url');
                     continue;
                 }
-                $flag = true;
-                $url  = $tempMap->get('url');
-
                 // 最小规则，直接退出
                 if (1 === $matchType) {
                     break;
                 }
             }
-
             if (!$flag) {
                 $matchFlag = 0;
             }
-
             // 找到相应key
             if ($matchFlag <= 0) {
                 continue;
             }
-            $words = mb_substr($content, $length, $matchFlag, 'utf-8');
-            $badWordList[] = ['words' => $words, 'url' => $url, 'len' => mb_strlen($words, 'utf-8')];
-
+            $words         = mb_substr($content, $length, $matchFlag, 'utf-8');
+            $tagWordList[] = ['words' => $words, 'url' => $url, 'len' => mb_strlen($words, 'utf-8')];
             // 有返回数量限制
-            if ($wordNum > 0 && count($badWordList) == $wordNum) {
-                return $badWordList;
+            if ($wordNum > 0 && count($tagWordList) == $wordNum) {
+                return $tagWordList;
             }
-
             // 需匹配内容标志位往后移
             $length = $length + $matchFlag - 1;
         }
-        array_multisort(array_column($badWordList,'len'),SORT_DESC,$badWordList);
-        return $badWordList;
+        array_multisort(array_column($tagWordList, 'len'), SORT_DESC, $tagWordList);
+        return $tagWordList;
     }
 
     /**
@@ -187,25 +166,21 @@ class Main
      */
     public function replace($content, $replaceChar = '', $repeat = false, $matchType = 1)
     {
-        if (empty($content)) {
-            throw new PdsBusinessException('请填写检测的内容', PdsBusinessException::EMPTY_CONTENT);
-        }
-        $badWordList = self::$badWordList ? self::$badWordList : $this->getBadWord($content, $matchType);
+        $tagWordList = self::$tagWordList ? self::$tagWordList : $this->getTagWord($content, $matchType);
 
         // 未检测到标签，直接返回
-        if (empty($badWordList)) {
+        if (empty($tagWordList)) {
             return $content;
         }
-        var_dump($badWordList);
-        foreach ($badWordList as $badWord) {
-            $words = implode('-???-', preg_split('/(?<!^)(?!$)/u', $badWord['words']));
-            $hasReplacedChar = '<a href="'.$badWord['url'].'">'.$words.'</a>';
+        foreach ($tagWordList as $tagWord) {
+            $words           = implode('-???-', preg_split('/(?<!^)(?!$)/u', $tagWord['words']));
+            $hasReplacedChar = '<a href="' . $tagWord['url'] . '">' . $words . '</a>';
             if ($repeat) {
-                $hasReplacedChar = $this->dfaBadWordConversChars($badWord, $replaceChar);
+                $hasReplacedChar = $this->dfatagWordConversChars($tagWord, $replaceChar);
             }
-            $content = str_replace($badWord['words'], $hasReplacedChar, $content);
+            $content = str_replace($tagWord['words'], $hasReplacedChar, $content);
         }
-        $content = str_replace('-???-','',$content);
+        $content = str_replace('-???-', '', $content);
         return $content;
     }
 
@@ -223,20 +198,16 @@ class Main
      */
     public function mark($content, $sTag, $eTag, $matchType = 1)
     {
-        if (empty($content)) {
-            throw new PdsBusinessException('请填写检测的内容', PdsBusinessException::EMPTY_CONTENT);
-        }
-
-        $badWordList = self::$badWordList ? self::$badWordList : $this->getBadWord($content, $matchType);
+        $tagWordList = self::$tagWordList ? self::$tagWordList : $this->getTagWord($content, $matchType);
 
         // 未检测到标签，直接返回
-        if (empty($badWordList)) {
+        if (empty($tagWordList)) {
             return $content;
         }
 
-        foreach ($badWordList as $badWord) {
-            $replaceChar = $sTag . $badWord . $eTag;
-            $content     = str_replace($badWord, $replaceChar, $content);
+        foreach ($tagWordList as $tagWord) {
+            $replaceChar = $sTag . $tagWord . $eTag;
+            $content     = str_replace($tagWord, $replaceChar, $content);
         }
         return $content;
     }
@@ -307,7 +278,7 @@ class Main
             return;
         }
         $tree = $this->wordTree;
-        
+
         $wordLength = mb_strlen($word, 'utf-8');
         for ($i = 0; $i < $wordLength; $i++) {
             $keyChar = mb_substr($word, $i, 1, 'utf-8');
@@ -345,7 +316,7 @@ class Main
      * @return string
      * @throws \DfaFilter\Exceptions\PdsSystemException
      */
-    protected function dfaBadWordConversChars($word, $char)
+    protected function dfatagWordConversChars($word, $char)
     {
         $str    = '';
         $length = mb_strlen($word, 'utf-8');
