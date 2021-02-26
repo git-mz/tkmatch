@@ -53,7 +53,6 @@ class Main
 
     /**
      * 构建标签词树【数组模式】
-     *
      * @param null $sensitiveWords
      *
      * @return $this
@@ -190,7 +189,6 @@ class Main
                 $tree->put('url', $url);
             }
         }
-
         return;
     }
 
