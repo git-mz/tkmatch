@@ -22,7 +22,7 @@ composer require git-mz/tkmatch
 ```php
 use tkmatch\main;
 
-$main     = new Main();
+$main    = new Main();
 $content = '我会脚踏云朵，哦不，是七彩云朵去娶你！';
 $tags = [
     ['word' => '云朵', 'url' => 'www.yunduo.com'],
@@ -31,20 +31,20 @@ $tags = [
 
 // 获取匹配到的tags
 $res = $main::init()
-	   ->setTree($tags)
-       ->getTagWord($content);
+     ->setTree($tags)
+     ->getTagWord($content);
 
 // 替换匹配到的tags
 $res = $main::init()
-	   ->setTree($tags)
-       ->replace($content);
+	 ->setTree($tags)
+     ->replace($content);
 
 ```
 3、方法说明
 ```php
 v1.0.0
-getTagWord(String content)					 //获取文本中匹配到的标签
-replace(String content)						//匹配替换文本中的标签
+    getTagWord(String content)					 //获取文本中匹配到的标签
+    replace(String content)						//匹配替换文本中的标签
 ```
 
 ### 小结一下
