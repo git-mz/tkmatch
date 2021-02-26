@@ -25,8 +25,8 @@ use tkmatch\main;
 $main    = new Main();
 $content = '我会脚踏云朵，哦不，是七彩云朵去娶你！';
 $tags = [
-    ['word' => '云朵',     'url' => 'www.yunduo.com'],
-    ['word' => '七彩云朵', 'url' => 'www.qicaiyunduo.com'],
+    ['word' => '云朵',      'url' => 'www.yunduo.com'],
+    ['word' => '七彩云朵',  'url' => 'www.qicaiyunduo.com'],
 ];
 
 // 获取匹配到的tags
