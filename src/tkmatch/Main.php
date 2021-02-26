@@ -52,31 +52,11 @@ class Main
     }
 
     /**
-     * 构建标签词树【文件模式】
-     *
-     * @param string $filepath
-     *
-     * @return $this
-     * @throws \DfaFilter\Exceptions\PdsBusinessException
-     */
-    public function setTreeByFile($filepath = '')
-    {
-        // 词库树初始化
-        $this->wordTree = $this->wordTree ?: new HashMap();
-        foreach ($this->yieldToReadFile($filepath) as $word) {
-            $this->buildWordToTree(trim($word));
-        }
-
-        return $this;
-    }
-
-    /**
      * 构建标签词树【数组模式】
      *
      * @param null $sensitiveWords
      *
      * @return $this
-     * @throws \DfaFilter\Exceptions\PdsBusinessException
      */
     public function setTree($sensitiveWords = null)
     {
@@ -94,7 +74,6 @@ class Main
      * @param int      $matchType  匹配类型 [默认为最小匹配规则]
      * @param int      $wordNum    需要获取的标签数量 [默认获取全部]
      * @return array
-     * @throws \DfaFilter\Exceptions\PdsSystemException
      */
     public function getTagWord($content, $matchType = 1, $wordNum = 0)
     {
@@ -157,14 +136,11 @@ class Main
      *
      * @param        $content      文本内容
      * @param string $replaceChar  替换字符
-     * @param bool   $repeat       true=>重复替换为标签相同长度的字符
      * @param int    $matchType
      *
      * @return mixed
-     * @throws \DfaFilter\Exceptions\PdsBusinessException
-     * @throws \DfaFilter\Exceptions\PdsSystemException
      */
-    public function replace($content, $replaceChar = '', $repeat = false, $matchType = 1)
+    public function replace($content, $replaceChar = '', $matchType = 1)
     {
         $tagWordList = self::$tagWordList ? self::$tagWordList : $this->getTagWord($content, $matchType);
 
@@ -175,100 +151,10 @@ class Main
         foreach ($tagWordList as $tagWord) {
             $words           = implode('-???-', preg_split('/(?<!^)(?!$)/u', $tagWord['words']));
             $hasReplacedChar = '<a href="' . $tagWord['url'] . '">' . $words . '</a>';
-            if ($repeat) {
-                $hasReplacedChar = $this->dfatagWordConversChars($tagWord, $replaceChar);
-            }
             $content = str_replace($tagWord['words'], $hasReplacedChar, $content);
         }
         $content = str_replace('-???-', '', $content);
         return $content;
-    }
-
-    /**
-     * 标记标签
-     *
-     * @param        $content    文本内容
-     * @param string $sTag       标签开头，如<mark>
-     * @param string $eTag       标签结束，如</mark>
-     * @param int    $matchType
-     *
-     * @return mixed
-     * @throws \DfaFilter\Exceptions\PdsBusinessException
-     * @throws \DfaFilter\Exceptions\PdsSystemException
-     */
-    public function mark($content, $sTag, $eTag, $matchType = 1)
-    {
-        $tagWordList = self::$tagWordList ? self::$tagWordList : $this->getTagWord($content, $matchType);
-
-        // 未检测到标签，直接返回
-        if (empty($tagWordList)) {
-            return $content;
-        }
-
-        foreach ($tagWordList as $tagWord) {
-            $replaceChar = $sTag . $tagWord . $eTag;
-            $content     = str_replace($tagWord, $replaceChar, $content);
-        }
-        return $content;
-    }
-
-    /**
-     * 被检测内容是否合法
-     *
-     * @param $content
-     *
-     * @return bool
-     * @throws \DfaFilter\Exceptions\PdsSystemException
-     */
-    public function islegal($content)
-    {
-        $this->contentLength = mb_strlen($content, 'utf-8');
-
-        for ($start = 0; $start < $this->contentLength; $start++) {
-            $matchFlag = 0;
-
-            $tempMap = $this->wordTree;
-            for ($i = $start; $i < $this->contentLength; $i++) {
-                $keyChar = mb_substr($content, $i, 1, 'utf-8');
-
-                // 获取指定节点树
-                $nowMap = $tempMap->get($keyChar);
-
-                // 不存在节点树，直接返回
-                if (empty($nowMap)) {
-                    break;
-                }
-
-                // 找到相应key，偏移量+1
-                $tempMap = $nowMap;
-                $matchFlag++;
-
-                // 如果为最后一个匹配规则,结束循环，返回匹配标识数
-                if (false === $nowMap->get('ending')) {
-                    continue;
-                }
-
-                return true;
-            }
-
-            // 找到相应key
-            if ($matchFlag <= 0) {
-                continue;
-            }
-
-            // 需匹配内容标志位往后移
-            $start = $start + $matchFlag - 1;
-        }
-        return false;
-    }
-
-    protected function yieldToReadFile($filepath)
-    {
-        $fp = fopen($filepath, 'r');
-        while (!feof($fp)) {
-            yield fgets($fp);
-        }
-        fclose($fp);
     }
 
     // 将单个标签构建成树结构
@@ -308,22 +194,4 @@ class Main
         return;
     }
 
-    /**
-     * 标签替换为对应长度的字符
-     * @param $word
-     * @param $char
-     *
-     * @return string
-     * @throws \DfaFilter\Exceptions\PdsSystemException
-     */
-    protected function dfatagWordConversChars($word, $char)
-    {
-        $str    = '';
-        $start = mb_strlen($word, 'utf-8');
-        for ($counter = 0; $counter < $start; ++$counter) {
-            $str .= $char;
-        }
-
-        return $str;
-    }
 }
