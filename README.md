@@ -36,15 +36,15 @@ $res = $main::init()
 
 // 替换匹配到的tags
 $res = $main::init()
-	 ->setTree($tags)
+     ->setTree($tags)
      ->replace($content);
 
 ```
 3、方法说明
 ```php
 v1.0.0
-    getTagWord(String content)					 //获取文本中匹配到的标签
-    replace(String content)						//匹配替换文本中的标签
+    getTagWord(String content)                      //获取文本中匹配到的标签
+    replace(String content)                         //匹配替换文本中的标签
 ```
 
 ### 小结一下
