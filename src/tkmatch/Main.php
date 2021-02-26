@@ -100,13 +100,13 @@ class Main
     {
         $this->contentLength = mb_strlen($content, 'utf-8');
         $tagWordList         = array();
-        for ($length = 0; $length < $this->contentLength; $length++) {
+        for ($start = 0; $start < $this->contentLength; $start++) {
             $matchFlag  = 0;
             $flag       = false;
             $url        = '';
             $tempMap    = $this->wordTree;
-            $iscontinue = 0;
-            for ($i = $length; $i < $this->contentLength; $i++) {
+            $len = 0;
+            for ($i = $start; $i < $this->contentLength; $i++) {
                 $keyChar = mb_substr($content, $i, 1, 'utf-8');
                 // 获取指定节点树
                 $nowMap = $tempMap->get($keyChar);
@@ -122,7 +122,7 @@ class Main
                     continue;
                 }
                 if (true === $tempMap->get('ending')) {
-                    $iscontinue++;
+                    $len = $matchFlag;
                     $flag = true;
                     $url  = $tempMap->get('url');
                     continue;
@@ -133,20 +133,20 @@ class Main
                 }
             }
             if (!$flag) {
-                $matchFlag = 0;
+                $len = 0;
             }
             // 找到相应key
-            if ($matchFlag <= 0) {
+            if ($len <= 0) {
                 continue;
             }
-            $words         = mb_substr($content, $length, $matchFlag, 'utf-8');
+            $words         = mb_substr($content, $start, $len, 'utf-8');
             $tagWordList[] = ['words' => $words, 'url' => $url, 'len' => mb_strlen($words, 'utf-8')];
             // 有返回数量限制
             if ($wordNum > 0 && count($tagWordList) == $wordNum) {
                 return $tagWordList;
             }
             // 需匹配内容标志位往后移
-            $length = $length + $matchFlag - 1;
+            $start = $start + $matchFlag - 1;
         }
         array_multisort(array_column($tagWordList, 'len'), SORT_DESC, $tagWordList);
         return $tagWordList;
@@ -224,11 +224,11 @@ class Main
     {
         $this->contentLength = mb_strlen($content, 'utf-8');
 
-        for ($length = 0; $length < $this->contentLength; $length++) {
+        for ($start = 0; $start < $this->contentLength; $start++) {
             $matchFlag = 0;
 
             $tempMap = $this->wordTree;
-            for ($i = $length; $i < $this->contentLength; $i++) {
+            for ($i = $start; $i < $this->contentLength; $i++) {
                 $keyChar = mb_substr($content, $i, 1, 'utf-8');
 
                 // 获取指定节点树
@@ -257,7 +257,7 @@ class Main
             }
 
             // 需匹配内容标志位往后移
-            $length = $length + $matchFlag - 1;
+            $start = $start + $matchFlag - 1;
         }
         return false;
     }
@@ -319,8 +319,8 @@ class Main
     protected function dfatagWordConversChars($word, $char)
     {
         $str    = '';
-        $length = mb_strlen($word, 'utf-8');
-        for ($counter = 0; $counter < $length; ++$counter) {
+        $start = mb_strlen($word, 'utf-8');
+        for ($counter = 0; $counter < $start; ++$counter) {
             $str .= $char;
         }
 

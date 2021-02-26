@@ -14,7 +14,7 @@ $wordData = [
 
 $lib     = new Main();
 $content = file_get_contents('./news.html');
-//$content = '创新能力创新哟v创新创新能力';
+$content = '创新创新能创新能力哟：w';
 // $test    = $lib::init()->setTree($wordData)->replace($content);
 // var_dump($lib::init()->setTree($wordData));
 
