@@ -70,20 +70,20 @@ class Main
      * 检测文本中的标签
      *
      * @param string   $content    待检测内容
-     * @param int      $matchType  匹配类型 [默认为最小匹配规则]
      * @param int      $wordNum    需要获取的标签数量 [默认获取全部]
      * @return array
      */
-    public function getTagWord($content, $matchType = 1, $wordNum = 0)
+    public function getTagWord($content, $wordNum = 0)
     {
         $this->contentLength = mb_strlen($content, 'utf-8');
         $tagWordList         = array();
+        $wordsLists          = [];
         for ($start = 0; $start < $this->contentLength; $start++) {
-            $matchFlag  = 0;
-            $flag       = false;
-            $url        = '';
-            $tempMap    = $this->wordTree;
-            $len = 0;
+            $matchFlag = 0;
+            $flag      = false;
+            $url       = '';
+            $tempMap   = $this->wordTree;
+            $len       = 0;
             for ($i = $start; $i < $this->contentLength; $i++) {
                 $keyChar = mb_substr($content, $i, 1, 'utf-8');
                 // 获取指定节点树
@@ -100,14 +100,10 @@ class Main
                     continue;
                 }
                 if (true === $tempMap->get('ending')) {
-                    $len = $matchFlag;
+                    $len  = $matchFlag;
                     $flag = true;
                     $url  = $tempMap->get('url');
                     continue;
-                }
-                // 最小规则，直接退出
-                if (1 === $matchType) {
-                    break;
                 }
             }
             if (!$flag) {
@@ -117,7 +113,11 @@ class Main
             if ($len <= 0) {
                 continue;
             }
-            $words         = mb_substr($content, $start, $len, 'utf-8');
+            $words = mb_substr($content, $start, $len, 'utf-8');
+            if (in_array($words, $wordsLists)) {
+                continue;
+            }
+            $wordsLists    = [$words];
             $tagWordList[] = ['words' => $words, 'url' => $url, 'len' => mb_strlen($words, 'utf-8')];
             // 有返回数量限制
             if ($wordNum > 0 && count($tagWordList) == $wordNum) {
@@ -133,24 +133,30 @@ class Main
     /**
      * 替换标签字符
      *
-     * @param        $content      文本内容
-     * @param string $replaceChar  替换字符
-     * @param int    $matchType
+     * @param         $content      文本内容
+     * @param string  $newclass     自定义添加属性
+     * @param bool    $replaceOne   是否只替换一次
      *
      * @return mixed
      */
-    public function replace($content, $replaceChar = '', $matchType = 1)
+    public function replace($content, $newclass = '', $replaceOne = 0)
     {
-        $tagWordList = self::$tagWordList ? self::$tagWordList : $this->getTagWord($content, $matchType);
-
+        $tagWordList = self::$tagWordList ? self::$tagWordList : $this->getTagWord($content);
+        if ($newclass) {
+            $newclass = ' ' . $newclass;
+        }
         // 未检测到标签，直接返回
         if (empty($tagWordList)) {
             return $content;
         }
         foreach ($tagWordList as $tagWord) {
             $words           = implode('-???-', preg_split('/(?<!^)(?!$)/u', $tagWord['words']));
-            $hasReplacedChar = '<a href="' . $tagWord['url'] . '">' . $words . '</a>';
-            $content = str_replace($tagWord['words'], $hasReplacedChar, $content);
+            $hasReplacedChar = '<a href="' . $tagWord['url'] . '"' . $newclass . '>' . $words . '</a>';
+            if ($replaceOne) {
+                $content = $this->str_replace_once($content, $tagWord['words'], $hasReplacedChar);
+            } else {
+                $content = str_replace($tagWord['words'], $hasReplacedChar, $content);
+            }
         }
         $content = str_replace('-???-', '', $content);
         return $content;
@@ -190,6 +196,16 @@ class Main
             }
         }
         return;
+    }
+
+    // 文本中有重复的标签时只替换其中一个
+    protected function str_replace_once($content = '', $needle = '', $replace = '')
+    {
+        $pos = strpos($content, $needle);
+        if ($pos === false) {
+            return $content;
+        }
+        return substr_replace($content, $replace, $pos, strlen($needle));
     }
 
 }
