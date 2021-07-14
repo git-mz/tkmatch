@@ -32,12 +32,12 @@ $tags = [
 // 获取匹配到的tags
 $res = $main::init()
      ->setTree($tags)
-     ->getTagWord($content);
+     ->getTagWord($content, $wordNum = 0);
 
 // 替换匹配到的tags
 $res = $main::init()
      ->setTree($tags)
-     ->replace($content);
+     ->replace($content, $newclass = '', $replaceOne = 0);
 
 ```
 3、方法说明
