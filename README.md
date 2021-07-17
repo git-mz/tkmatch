@@ -6,7 +6,7 @@
 
 ### 使用场景
 ```
-v1.0.0
+v1.1.0
 文本中匹配指定词组，替换为带链接的标签
 
 ```
@@ -42,9 +42,11 @@ $res = $main::init()
 ```
 3、方法说明
 ```php
-v1.0.0
-    getTagWord(String content)                                  //获取文本中匹配到的标签
-    replace(String content)                                     //匹配替换文本中的标签
+v1.1.0
+    getTagWord(String content, Int wordNum)
+    //获取文本中匹配到的标签
+    replace(String content, String newclass, Int replaceOne)
+    //匹配替换文本中的标签
 ```
 
 ### 小结一下
