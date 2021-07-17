@@ -117,7 +117,7 @@ class Main
             if (in_array($words, $wordsLists)) {
                 continue;
             }
-            $wordsLists    = [$words];
+            $wordsLists[]  = $words;
             $tagWordList[] = ['words' => $words, 'url' => $url, 'len' => mb_strlen($words, 'utf-8')];
             // 有返回数量限制
             if ($wordNum > 0 && count($tagWordList) == $wordNum) {
